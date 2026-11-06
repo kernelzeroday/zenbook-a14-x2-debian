@@ -62,7 +62,7 @@ Live over SSH (Wi-Fi was working by then, see §4):
 
 The community A14 NixOS tree (chrispouliot/linux-zenbook-a14-arm) caps the eDP link at HBR, as a
 workaround for training failures after s2idle. Applying that cap here (`link-frequencies =
-<1620000000 2700000000>`) made the panel light up straight away. → patch 0003.
+<1620000000 2700000000>`) made the panel light up straight away. → patch 0001.
 
 ## 4. Wi-Fi
 
@@ -94,27 +94,34 @@ because it expected exactly one failing name.
 - `efibootmgr` writes worked on this firmware. Added a "Debian" boot entry and removed the stale
   Windows one.
 
-## 6. The silent reset
+## 6. The silent reset, and a wrong fix
 
 First session on the SSD: the machine reset while the user was picking a wallpaper. There was no
 shutdown in the journal, no oops, and pstore was empty. The journal just stops, and the firmware
 starts again about 10 s later.
 
-The one odd line on every boot:
+**Wrong fix (published briefly as patches 0001/0002, then removed).** Every boot logs
+`Zap shader not enabled - using SECVID_TRUST_CNTL instead`, and the a8xx code comment warns that
+a wrong guess here leads to "a permissions violation". `glymur.dtsi` reserves
+`gpu-microcode@919fe000` without linking it, so I wired up a zap-shader node with the Windows
+`qcdxkmsuc8480.mbn`. The resets stopped, but only because the GPU no longer started:
 
 ```
-msm_dpu ae01000.display-controller: Zap shader not enabled - using SECVID_TRUST_CNTL instead
+adreno 3d00000.gpu: error -22 initializing firmware qcom/glymur/ASUSTeK/UX3407NA/qcdxkmsuc8480.mbn
+msm_dpu ...: [drm:adreno_load_gpu [msm]] *ERROR* gpu hw init failed: -22
 ```
 
-The a8xx driver's own comment says that if the guess is wrong, *"access to the
-RBBM_SECVID_TRUST_CNTL register will be blocked and a permissions violation will soon follow"*.
-On Qualcomm, a permissions violation means an XPU fault, and the secure world resets the SoC
-without a log. `glymur.dtsi` reserves `gpu-microcode@919fe000`, but never links it to the GPU.
-hamoa (X1E) has `gpu_zap_shader: zap-shader { memory-region = <&gpu_microcode_mem>; }`. The ASUS
-zap shader is `qcdxkmsuc8480.mbn` from the Windows display driver.
+TrustZone rejects `qcom_pas_init_image()` for the GPU (PAS 13), while the ADSP/CDSP load fine over
+the same path. The reason: **this machine boots Linux at EL2** ("CPU: All CPU(s) started at
+EL2", VHE, `/dev/kvm`). Upstream's `*-el2.dtso` overlays all disable the zap shader: *"We can't
+and don't need to use zap shader in EL2 as linux can zap the gpu on its own."* So Glymur leaving
+the node out is correct.
 
-After adding the node (patches 0001/0002), the warning is gone and the wallpaper changes are
-stable. GNOME runs GPU-accelerated on Mesa 26.1.6 (trixie-backports).
+What was missing was a check of the GPU's own state after the change. "No crash" isn't the same
+as "fixed".
+
+**Status:** zap node removed again, and the cause of the reset is unknown. Next step is to capture
+evidence (live kernel log streamed off the machine, and ramoops) instead of guessing.
 
 ## 7. Banding (18 bpp)
 
@@ -126,8 +133,9 @@ capacity is therefore 0, nothing fits, and the loop falls through to the 18 bpp 
 modeset (fb blank/unblank) had real link info and picked 30 bpp at HBR2.
 
 At HBR × 2 the link carries 4.32 Gbps, and 1920×1200@60 at 24 bpp needs 3.70 Gbps, so 24 bpp is
-the right answer. Patch 0004 re-runs the mode setup for eDP right after the plug handling. That's
-a generic msm fix, unlike the community tree's A14-gated depth patch.
+the right answer. Patch 0002 re-runs the mode setup for eDP right after the plug handling. That's
+a generic msm fix, unlike the community tree's A14-gated depth patch. Verified on hardware:
+`dp_debug` reports `bpp = 24` at `rate=270000 num_lanes=2`.
 
 Building one module against a running kernel: `make KERNELRELEASE=<running release> modules`.
 `LOCALVERSION_AUTO` otherwise stamps the patched branch's hash into the vermagic, and the module

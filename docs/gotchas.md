@@ -15,8 +15,10 @@ Things that cost real time on this machine, roughly in the order you'll hit them
 7. **`nomodeset` doesn't help.** msm still probes the DP controllers and takes the link from efifb.
 8. **The panel driver must be in the initramfs if `msm` is**, or the LUKS prompt lands on a dark
    screen. The same goes for the `gen80100_*` GPU firmware.
-9. **Silent reset with an empty pstore** → look for `Zap shader not enabled`. Add the zap-shader
-   node.
+9. **Don't add a zap-shader node.** Linux runs at EL2 on these laptops ("All CPU(s) started at
+   EL2"), so `Zap shader not enabled - using SECVID_TRUST_CNTL instead` is correct and expected.
+   With a zap node, TrustZone rejects PAS init (`error -22 initializing firmware`) and the GPU
+   never starts. That looks "stable" only because nothing is using the GPU.
 10. **Your kernel config may not have `DM_CRYPT`.** arm64 defconfig plus the qcom fragments
     doesn't enable it.
 11. ath12k may want **two** board names (with and without `variant=`). Add both.
@@ -27,7 +29,7 @@ Things that cost real time on this machine, roughly in the order you'll hit them
 14. Speakers: **don't** enable the sound node with a generic topology. These amps need speaker
     protection.
 15. **18 bpp on eDP** is an msm ordering bug (bpp chosen before link caps are read), not a
-    panel limit. See patch 0004.
+    panel limit. See patch 0002.
 16. Rebuilding one module for a running kernel: pass `KERNELRELEASE=$(uname -r)`, or
     `LOCALVERSION_AUTO` puts your branch's hash into vermagic and modprobe refuses it.
 17. Debian's `kernel-install` writes generic BLS entries with no `devicetree` line, and those

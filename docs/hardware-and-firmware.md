@@ -49,7 +49,7 @@ After install: p1–p11 untouched, p12 = 1 GiB ESP, p13 = LUKS2 (rest of disk).
 | `qcsubsys_ext_adsp8480.inf` | 5200.1810.0.5 (newest of two installed) | `qcadsp8480.mbn`, `adsp_dtbs.elf`, `adsp*.jsn` |
 | `qcsubsys_ext_soccp8480.inf` | 685.13804.70.1 | `soccpr.jsn` |
 | `qcnspmcdm8480.inf` | 30.0.220.11010 | `qccdsp8480.mbn`, `cdsp_dtbs.elf` |
-| `qcdx8480.inf` (Adreno X2-90 driver 32.0.149.0) | 32.0.149.0 | `qcdxkmsuc8480.mbn` (**GPU zap shader**) |
+| `qcdx8480.inf` (Adreno X2-90 driver 32.0.149.0) | 32.0.149.0 | `qcdxkmsuc8480.mbn` (GPU zap shader; **not needed on Linux at EL2**) |
 | `qcwlancol8480.inf` | 685.13804.110.0 (active, `oem165.inf`) | `bdwlan_qcc2072_1p0_ncm820A.elf` (Wi-Fi board data) |
 
 The Wi-Fi board file is the one named by the active adapter's registry `BDFileName` value.
@@ -70,7 +70,7 @@ post-BIOS-316 Windows install. Yours should match if you're on the same driver v
 | `qccdsp8480.mbn` | 3252504 | `acf13d29288d283793f418a36650e8a261eed927d30de109a59cb2210f458794` |
 | `cdsp_dtbs.elf` | 69432 | `9bee104a48d4aac647287d6c1454df170c1cff7158a2352711fd1e2163ea6d1d` |
 | `soccpr.jsn` | 261 | `e6b053e996f2d6b933f41bd6dffe4a5ba3c09ec594675febee04c944b3780d6a` |
-| `qcdxkmsuc8480.mbn` | 12088 | `bd1a2d6735dc0507ace397ab868c05d70b286a30ea4a57e16771e272a045b5db` |
+| `qcdxkmsuc8480.mbn` (unused) | 12088 | `bd1a2d6735dc0507ace397ab868c05d70b286a30ea4a57e16771e272a045b5db` |
 | `bdwlan_qcc2072_1p0_ncm820A.elf` | 125476 | `eeb1311ec3e4955323f1b62247d4caeaad1f292938e2077dfdc466d6a4d3be86` |
 
 The BIOS 315 update changed `qcadsp8480.mbn`, `adsp_dtbs.elf` and the Wi-Fi BDF. Before it, the

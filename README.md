@@ -9,7 +9,7 @@ This laptop gained a mainline device tree in Linux 7.4. "Supported in mainline" 
 mean "boots, then needs a handful of very specific fixes". This repo records every one of them,
 with root causes, so the next person doesn't have to rediscover them.
 
-> **No firmware is redistributed here.** The DSP, GPU zap-shader and Wi-Fi calibration files are
+> **No firmware is redistributed here.** The DSP and Wi-Fi calibration files are
 > proprietary Qualcomm/ASUS blobs. You extract them from *your own* machine's Windows install
 > before wiping it. [docs/hardware-and-firmware.md](docs/hardware-and-firmware.md) lists the exact
 > files, the Windows driver packages they come from, and SHA256 hashes so you can verify yours.
@@ -20,8 +20,8 @@ with root causes, so the next person doesn't have to rediscover them.
 |---|---|---|
 | Boot (systemd-boot, DT via `devicetree`) | ✅ | Secure Boot must be off |
 | Internal NVMe, LUKS2 root, Plymouth prompt | ✅ | Kernel needed `CONFIG_DM_CRYPT` |
-| Internal OLED (eDP) | ✅ | Needs [HBR cap](patches/kernel/0003-arm64-dts-qcom-glymur-asus-zenbook-a14-Limit-the-eDP.patch); **6-bit (18 bpp) only for now → banding** |
-| GPU (Adreno X2-90) | ✅ | Mesa 26.1 (trixie-backports); needs [zap shader](patches/kernel/0001-arm64-dts-qcom-glymur-Describe-the-GPU-zap-shader.patch) or the SoC resets silently |
+| Internal OLED (eDP) | ✅ | Needs [HBR cap](patches/kernel/0001-arm64-dts-qcom-glymur-asus-zenbook-a14-Limit-the-eDP.patch); 24 bpp with [the bpp fix](patches/kernel/0002-drm-msm-dp-Recompute-eDP-bpp-once-the-link-capabilit.patch) |
+| GPU (Adreno X2-90) | ⚠️ | Mesa 26.1 (trixie-backports). **One unexplained silent reset under GPU load, under investigation.** No zap shader (EL2, see below) |
 | Wi-Fi (QCC2072 / FastConnect C7700) | ✅ | Needs board data from the Windows driver ([script](scripts/wifi-offline-calibrate.sh)) |
 | Keyboard, touchpad | ✅ | I2C-HID |
 | Battery / charger status | ✅ | Needs ADSP running (qcom_q6v5_pas) |
@@ -37,12 +37,12 @@ with root causes, so the next person doesn't have to rediscover them.
 | Symptom | Root cause | Fix |
 |---|---|---|
 | Boot from USB-C hangs in initramfs | ADSP restart by `qcom_q6v5_pas` resets the Type-C mux; root disk vanishes | Boot from USB-A, or `modprobe.blacklist=qcom_q6v5_pas` while running from USB |
-| Screen goes dark right after the fbcon penguins | msm takes the eDP link from efifb and trains HBR2; panel never lights | [Cap eDP at HBR](patches/kernel/0003-arm64-dts-qcom-glymur-asus-zenbook-a14-Limit-the-eDP.patch) |
+| Screen goes dark right after the fbcon penguins | msm takes the eDP link from efifb and trains HBR2; panel never lights | [Cap eDP at HBR](patches/kernel/0001-arm64-dts-qcom-glymur-asus-zenbook-a14-Limit-the-eDP.patch) |
 | `cryptsetup open`: `crypt: unknown target type` | defconfig + qcom-deb-images fragments don't enable `DM_CRYPT` | [`config/kernel/a14-luks.config`](config/kernel/a14-luks.config) |
-| Random hard reset (no log, empty pstore) under GPU load | No zap-shader node → driver writes `SECVID_TRUST_CNTL` → secure-world violation | [Zap-shader patches](patches/kernel/) |
+| Random hard reset (no log, empty pstore) under GPU load | **Unknown.** It is *not* the missing zap shader: Linux runs at EL2 here, and a zap node makes TrustZone reject it (`-EINVAL`), so the GPU never starts | Under investigation ([log §6](docs/bringup-log.md#6-the-silent-reset-and-a-wrong-fix)) |
 | ath12k: `failed to fetch board data … variant=UX3407Q` | Laptop-specific BDF only exists in the Windows driver | [Encode the Windows BDF into `board-2.bin`](scripts/wifi-offline-calibrate.sh) |
 | Passphrase prompt could come up dark | `msm` in initramfs but not the panel driver | [`config/initramfs/modules`](config/initramfs/modules) |
-| Banding | eDP `mode_set` picks bpp before the link caps are read → 18 bpp | [Recompute bpp after plug handling](patches/kernel/0004-drm-msm-dp-Recompute-eDP-bpp-once-the-link-capabilit.patch) (testing) |
+| Banding | eDP `mode_set` picks bpp before the link caps are read → 18 bpp | [Recompute bpp after plug handling](patches/kernel/0002-drm-msm-dp-Recompute-eDP-bpp-once-the-link-capabilit.patch) → 24 bpp verified |
 
 The full narrative, including the dead ends, is in [docs/bringup-log.md](docs/bringup-log.md).
 Short version of the lessons: [docs/gotchas.md](docs/gotchas.md).

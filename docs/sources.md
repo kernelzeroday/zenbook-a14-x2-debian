@@ -8,7 +8,7 @@
 - UX3407NA DTS series on linux-arm-msm ("[PATCH 0/3] arm64: dts: qcom: Introduce Asus Zenbook A14 (UX3407NA)"):
   https://ratatoskr.run/linux-arm-msm/2026/06/17163526/t
 - `drivers/gpu/drm/msm/adreno/a8xx_gpu.c`: zap shader / `SECVID_TRUST_CNTL` fallback
-- `arch/arm64/boot/dts/qcom/hamoa.dtsi`: reference zap-shader node for X1E
+- `arch/arm64/boot/dts/qcom/*-el2.dtso`: upstream disables the zap shader when Linux runs at EL2
 
 ## Community work on this exact laptop
 - chrispouliot/linux-zenbook-a14-arm, NixOS/Arch guide and patch stack for the UX3407NA

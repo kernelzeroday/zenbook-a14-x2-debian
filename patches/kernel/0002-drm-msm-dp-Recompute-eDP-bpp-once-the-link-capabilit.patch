@@ -1,7 +1,7 @@
-From 07c4aafa03b5d9b11742cd250779ce8d62e1fef2 Mon Sep 17 00:00:00 2001
+From 674fdeac1a09c0c9a0560d78cf07cc0f8c55e992 Mon Sep 17 00:00:00 2001
 From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
 Date: Fri, 6 Nov 2026 01:44:22 +0000
-Subject: [PATCH 4/4] drm/msm/dp: Recompute eDP bpp once the link capabilities
+Subject: [PATCH 2/2] drm/msm/dp: Recompute eDP bpp once the link capabilities
  are known
 
 msm_dp_display_set_mode() picks the output bpp with
