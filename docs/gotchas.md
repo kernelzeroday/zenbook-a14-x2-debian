@@ -34,3 +34,7 @@ Things that cost real time on this machine, roughly in the order you'll hit them
     `LOCALVERSION_AUTO` puts your branch's hash into vermagic and modprobe refuses it.
 17. Debian's `kernel-install` writes generic BLS entries with no `devicetree` line, and those
     don't boot this laptop. Mask `90-loaderentry.install` if you manage boot entries yourself.
+18. **Unexplained silent resets under load:** While GPU power rails run on dummy regulators,
+    high CPU transient spikes (boost up to 4.7 GHz across 18 cores) can cause instant reboots.
+    Cap CPU frequency with `scripts/cpu mid` (~2.76 GHz) or `scripts/cpu low` (~2.2 GHz powersave)
+    for stability during builds.

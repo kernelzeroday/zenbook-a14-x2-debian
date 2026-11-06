@@ -123,6 +123,13 @@ as "fixed".
 **Status:** zap node removed again, and the cause of the reset is unknown. Next step is to capture
 evidence (live kernel log streamed off the machine, and ramoops) instead of guessing.
 
+As an immediate mitigation against hard resets under sustained load / parallel builds, the CPU
+frequency was throttled via cpufreq (`scripts/cpu`):
+- `mid` profile: ~2.76 GHz, `schedutil` governor (tested stable under parallel compiles)
+- `low` profile: ~2.2 GHz, `powersave` governor (stress/build tasks)
+The unthrottled maximum on Oryon v1 approaches ~4.7 GHz, where transient load spikes appear to
+trigger hardware brownout or PMIC reset while GPU regulators run as unmapped dummies.
+
 ## 7. Banding (18 bpp)
 
 `dp_debug` showed `bpp = 18` after every boot. `msm_dp_display_set_mode()` runs at mode_set, and

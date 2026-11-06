@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Easy CPU throttle for the Snapdragon X2 (mitigates silent resets under sustained load).
+# Sets the cpufreq governor and a max-frequency cap across all cores.
+#   cpu low   ~2.2 GHz, powersave   (heavy builds / stress; lowest reset risk)
+#   cpu mid   ~2.76 GHz, schedutil  (tested stable under parallel compiles)  [default]
+#   cpu high  full freq, schedutil  (normal desktop use)
+#   cpu perf  full freq, performance
+#   cpu status
+set -euo pipefail
+C=/sys/devices/system/cpu
+mapfile -t F < <(tr ' ' '\n' < "$C/cpu0/cpufreq/scaling_available_frequencies" | grep . | sort -n)
+MIN=${F[0]}; MAX=${F[-1]}
+pick() { local t=$1 best=${F[0]}; for f in "${F[@]}"; do [ "$f" -le "$t" ] && best=$f; done; echo "$best"; }
+setall() { local k=$1 v=$2; for p in "$C"/cpu[0-9]*/cpufreq/"$k"; do echo "$v" | sudo tee "$p" >/dev/null; done; }
+case "${1:-status}" in
+  low)  setall scaling_governor powersave;   setall scaling_max_freq "$(pick 2208000)";;
+  mid)  setall scaling_governor schedutil;   setall scaling_max_freq "$(pick 2764800)";;
+  high) setall scaling_governor schedutil;   setall scaling_max_freq "$MAX";;
+  perf) setall scaling_governor performance; setall scaling_max_freq "$MAX";;
+  status) ;;
+  *) echo "usage: cpu {low|mid|high|perf|status}"; exit 1;;
+esac
+printf 'governor: %s\n' "$(cat $C/cpu0/cpufreq/scaling_governor)"
+printf 'max cap:  %s MHz (hw max %s MHz)\n' "$(( $(cat $C/cpu0/cpufreq/scaling_max_freq)/1000 ))" "$((MAX/1000))"
+printf 'cur freq: %s MHz across %s cores\n' "$(( $(cat $C/cpu0/cpufreq/scaling_cur_freq)/1000 ))" "$(nproc)"
