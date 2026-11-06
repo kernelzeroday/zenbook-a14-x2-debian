@@ -1,7 +1,7 @@
 From adefadc26ddb3186938925f645430a1bdb446b13 Mon Sep 17 00:00:00 2001
 From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
 Date: Fri, 6 Nov 2026 01:38:19 +0000
-Subject: [PATCH 3/3] arm64: dts: qcom: glymur-asus-zenbook-a14: Limit the eDP
+Subject: [PATCH 3/4] arm64: dts: qcom: glymur-asus-zenbook-a14: Limit the eDP
  link to HBR
 
 The internal Samsung ATNA40CT06 panel trains successfully at HBR2 x2

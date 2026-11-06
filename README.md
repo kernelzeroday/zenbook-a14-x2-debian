@@ -42,7 +42,7 @@ with root causes, so the next person doesn't have to rediscover them.
 | Random hard reset (no log, empty pstore) under GPU load | No zap-shader node → driver writes `SECVID_TRUST_CNTL` → secure-world violation | [Zap-shader patches](patches/kernel/) |
 | ath12k: `failed to fetch board data … variant=UX3407Q` | Laptop-specific BDF only exists in the Windows driver | [Encode the Windows BDF into `board-2.bin`](scripts/wifi-offline-calibrate.sh) |
 | Passphrase prompt could come up dark | `msm` in initramfs but not the panel driver | [`config/initramfs/modules`](config/initramfs/modules) |
-| Banding | msm picks bpp before reading panel caps → 18 bpp | Work in progress ([community fix](https://github.com/chrispouliot/linux-zenbook-a14-arm)) |
+| Banding | eDP `mode_set` picks bpp before the link caps are read → 18 bpp | [Recompute bpp after plug handling](patches/kernel/0004-drm-msm-dp-Recompute-eDP-bpp-once-the-link-capabilit.patch) (testing) |
 
 The full narrative, including the dead ends, is in [docs/bringup-log.md](docs/bringup-log.md).
 Short version of the lessons: [docs/gotchas.md](docs/gotchas.md).

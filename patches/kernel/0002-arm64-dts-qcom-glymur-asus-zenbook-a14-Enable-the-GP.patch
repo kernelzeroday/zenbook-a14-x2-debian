@@ -1,7 +1,7 @@
 From 2348dcade4930aeb396849398b66f3bfe3cfb03b Mon Sep 17 00:00:00 2001
 From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
 Date: Fri, 6 Nov 2026 01:38:19 +0000
-Subject: [PATCH 2/3] arm64: dts: qcom: glymur-asus-zenbook-a14: Enable the GPU
+Subject: [PATCH 2/4] arm64: dts: qcom: glymur-asus-zenbook-a14: Enable the GPU
  zap shader
 
 Point the zap shader at the board-specific signed firmware shipped with

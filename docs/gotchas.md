@@ -26,3 +26,9 @@ Things that cost real time on this machine, roughly in the order you'll hit them
     14 ms. `quiet splash` actually speeds up boot.
 14. Speakers: **don't** enable the sound node with a generic topology. These amps need speaker
     protection.
+15. **18 bpp on eDP** is an msm ordering bug (bpp chosen before link caps are read), not a
+    panel limit. See patch 0004.
+16. Rebuilding one module for a running kernel: pass `KERNELRELEASE=$(uname -r)`, or
+    `LOCALVERSION_AUTO` puts your branch's hash into vermagic and modprobe refuses it.
+17. Debian's `kernel-install` writes generic BLS entries with no `devicetree` line, and those
+    don't boot this laptop. Mask `90-loaderentry.install` if you manage boot entries yourself.

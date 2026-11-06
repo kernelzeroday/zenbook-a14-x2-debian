@@ -80,8 +80,12 @@ chroot "$target" update-initramfs -u -k "$release"
 cp "$target/boot/initrd.img-$release" "$target/boot/efi/asus-debian/initrd"
 cp "$repo/config/boot/entries/asus-debian.conf" "$target/boot/efi/loader/entries/asus-debian.conf"
 cp "$repo/config/boot/loader.conf" "$target/boot/efi/loader/loader.conf"
-# kernel-install BLS entries from the live image point at the USB root.
+# kernel-install BLS entries from the live image point at the USB root, and lack the
+# devicetree line this laptop needs. Remove them and stop kernel-install writing more.
 find "$target/boot/efi/loader/entries" -name '*-*.conf' ! -name asus-debian.conf -delete
+mkdir -p "$target/etc/kernel/install.d"
+ln -sf /dev/null "$target/etc/kernel/install.d/90-loaderentry.install"
+ln -sf /dev/null "$target/etc/kernel/install.d/90-uki-copy.install"
 lsinitramfs "$target/boot/efi/asus-debian/initrd" | grep -qE 'dm-crypt.ko' || { echo 'dm-crypt missing from initramfs' >&2; exit 1; }
 lsinitramfs "$target/boot/efi/asus-debian/initrd" | grep -qE 'panel-samsung-atna33xc20.ko' || { echo 'panel driver missing from initramfs' >&2; exit 1; }
 

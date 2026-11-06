@@ -116,9 +116,23 @@ zap shader is `qcdxkmsuc8480.mbn` from the Windows display driver.
 After adding the node (patches 0001/0002), the warning is gone and the wallpaper changes are
 stable. GNOME runs GPU-accelerated on Mesa 26.1.6 (trixie-backports).
 
-## 7. Open
+## 7. Banding (18 bpp)
 
-- **18 bpp**. msm computes the bpp in `mode_set` before the first powered DPCD read, from an empty
-  `link_info`, so it picks the minimum. The A14 community tree has a depth-finalisation patch.
-  HBR ×2 has room for 24 bpp at 1920×1200@60.
+`dp_debug` showed `bpp = 18` after every boot. `msm_dp_display_set_mode()` runs at mode_set, and
+it picks the bpp with `msm_dp_panel_get_supported_bpp()`: the highest depth whose data rate fits
+in `num_lanes × rate × 8`. For eDP, `link_info` is only filled in by `msm_dp_hpd_plug_handle()`
+from `msm_dp_display_prepare_link()`, which runs *after* mode_set. On the first enable the
+capacity is therefore 0, nothing fits, and the loop falls through to the 18 bpp minimum. A later
+modeset (fb blank/unblank) had real link info and picked 30 bpp at HBR2.
+
+At HBR × 2 the link carries 4.32 Gbps, and 1920×1200@60 at 24 bpp needs 3.70 Gbps, so 24 bpp is
+the right answer. Patch 0004 re-runs the mode setup for eDP right after the plug handling. That's
+a generic msm fix, unlike the community tree's A14-gated depth patch.
+
+Building one module against a running kernel: `make KERNELRELEASE=<running release> modules`.
+`LOCALVERSION_AUTO` otherwise stamps the patched branch's hash into the vermagic, and the module
+won't load.
+
+## 8. Open
+
 - Bluetooth NVM/calibration files, speaker protection and topology, HDMI, suspend.

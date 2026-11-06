@@ -1,0 +1,57 @@
+From 07c4aafa03b5d9b11742cd250779ce8d62e1fef2 Mon Sep 17 00:00:00 2001
+From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 01:44:22 +0000
+Subject: [PATCH 4/4] drm/msm/dp: Recompute eDP bpp once the link capabilities
+ are known
+
+msm_dp_display_set_mode() picks the output bpp with
+msm_dp_panel_get_supported_bpp(), which keeps the highest depth whose
+data rate fits in num_lanes * rate * 8. For eDP the sink capabilities
+are only read in msm_dp_hpd_plug_handle(), called from
+msm_dp_display_prepare_link(), i.e. after mode_set. On the first enable
+link_info is therefore still zero, nothing fits, and the panel is driven
+at the 18 bpp minimum, which shows up as visible banding.
+
+Seen on the ASUS Zenbook A14 (UX3407NA): 1920x1200@60 (154.26 MHz) on
+HBR x2 has room for 24 bpp (3.70 of 4.32 Gbps), but dp_debug reports
+bpp = 18 after boot and only a later modeset picks a deeper format.
+
+Re-run the mode setup for eDP right after the plug handling has
+populated link_info, before link training and stream setup consume the
+bpp.
+
+Signed-off-by: kelsey <11334159+kernelzeroday@users.noreply.github.com>
+---
+ drivers/gpu/drm/msm/dp/dp_display.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/msm/dp/dp_display.c b/drivers/gpu/drm/msm/dp/dp_display.c
+index d48403f1d..b54318bbd 100644
+--- a/drivers/gpu/drm/msm/dp/dp_display.c
++++ b/drivers/gpu/drm/msm/dp/dp_display.c
+@@ -638,9 +638,21 @@ static int msm_dp_display_prepare_link(struct msm_dp_display_private *dp)
+ 
+ 	drm_dbg_dp(dp->drm_dev, "sink_count=%d\n", dp->link->sink_count);
+ 
+-	if (msm_dp_display->is_edp)
++	if (msm_dp_display->is_edp) {
++		struct drm_display_mode mode;
++
+ 		msm_dp_hpd_plug_handle(dp);
+ 
++		/*
++		 * For eDP, mode_set runs before the sink's link capabilities
++		 * have been read, so the bpp was chosen against an empty
++		 * link_info and fell back to the 18 bpp minimum. Redo the
++		 * selection now that the link rate and lane count are known.
++		 */
++		drm_mode_copy(&mode, &dp->panel->msm_dp_mode.drm_mode);
++		msm_dp_display_set_mode(msm_dp_display, &mode, dp->panel);
++	}
++
+ 	rc = pm_runtime_resume_and_get(&msm_dp_display->pdev->dev);
+ 	if (rc) {
+ 		DRM_ERROR("failed to pm_runtime_resume\n");
+-- 
+2.47.3
+
