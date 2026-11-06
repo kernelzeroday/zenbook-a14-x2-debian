@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+case "${1:-}" in prereqs) exit 0 ;; esac
+source=/usr/lib/firmware/updates/qcom/glymur/ASUSTeK/UX3407NA
+[ -d "$source" ]
+destination="$DESTDIR/lib/firmware/updates/qcom/glymur/ASUSTeK/UX3407NA"
+mkdir -p "$destination"
+cp -p "$source/"* "$destination/"

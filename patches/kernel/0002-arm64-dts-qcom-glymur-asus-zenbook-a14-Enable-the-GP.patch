@@ -1,0 +1,35 @@
+From 2348dcade4930aeb396849398b66f3bfe3cfb03b Mon Sep 17 00:00:00 2001
+From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 01:38:19 +0000
+Subject: [PATCH 2/3] arm64: dts: qcom: glymur-asus-zenbook-a14: Enable the GPU
+ zap shader
+
+Point the zap shader at the board-specific signed firmware shipped with
+the Windows display driver (qcdx8480 package, qcdxkmsuc8480.mbn).
+
+With this the "Zap shader not enabled" fallback is gone and GNOME on
+Mesa freedreno no longer triggers silent secure-world resets.
+
+Signed-off-by: kelsey <11334159+kernelzeroday@users.noreply.github.com>
+---
+ arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts b/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
+index d773e30e0..fd6b8d8eb 100644
+--- a/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
++++ b/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
+@@ -513,6 +513,10 @@ &gpu {
+ 	status = "okay";
+ };
+ 
++&gpu_zap_shader {
++	firmware-name = "qcom/glymur/ASUSTeK/UX3407NA/qcdxkmsuc8480.mbn";
++};
++
+ &gmu {
+ 	status = "okay";
+ };
+-- 
+2.47.3
+

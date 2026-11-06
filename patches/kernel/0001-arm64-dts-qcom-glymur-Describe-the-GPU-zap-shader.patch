@@ -1,0 +1,41 @@
+From 9bc83afe2ed53a71b600e49a0f678168315a8ceb Mon Sep 17 00:00:00 2001
+From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
+Date: Fri, 6 Nov 2026 01:38:19 +0000
+Subject: [PATCH 1/3] arm64: dts: qcom: glymur: Describe the GPU zap shader
+
+glymur.dtsi reserves gpu-microcode@919fe000 for the Adreno zap shader but
+never hands it to the GPU node. Without a zap-shader child the a8xx driver
+falls back to writing RBBM_SECVID_TRUST_CNTL itself:
+
+  Zap shader not enabled - using SECVID_TRUST_CNTL instead
+
+On the ASUS Zenbook A14 (UX3407NA) that leaves the machine running until
+a heavier GPU workload (e.g. changing the GNOME wallpaper), at which point
+the secure world resets the SoC with no kernel log and nothing in pstore.
+
+Add the zap-shader node referencing the existing carveout, mirroring
+hamoa.dtsi. Boards supply the signed firmware via firmware-name.
+
+Signed-off-by: kelsey <11334159+kernelzeroday@users.noreply.github.com>
+---
+ arch/arm64/boot/dts/qcom/glymur.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/qcom/glymur.dtsi b/arch/arm64/boot/dts/qcom/glymur.dtsi
+index a71724698..64bf8a6b3 100644
+--- a/arch/arm64/boot/dts/qcom/glymur.dtsi
++++ b/arch/arm64/boot/dts/qcom/glymur.dtsi
+@@ -4670,6 +4670,10 @@ gpu: gpu@3d00000 {
+ 					 &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>;
+ 			interconnect-names = "gfx-mem";
+ 
++			gpu_zap_shader: zap-shader {
++				memory-region = <&gpu_microcode_mem>;
++			};
++
+ 			gpu_opp_table: opp-table {
+ 				compatible = "operating-points-v2-adreno",
+ 					     "operating-points-v2";
+-- 
+2.47.3
+

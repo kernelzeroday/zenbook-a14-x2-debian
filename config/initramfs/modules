@@ -1,0 +1,53 @@
+# /etc/initramfs-tools/modules additions for the ASUS Zenbook A14 (UX3407NA).
+# MODULES=most misses all of these.
+
+# ADSP/SoCCP remoteprocs + PMIC GLINK / Type-C stack (battery, USB-C).
+# NOTE: when *booting from a USB-C disk*, also pass modprobe.blacklist=qcom_q6v5_pas:
+# the ADSP restart resets the Type-C mux and the root disk disappears.
+qcom_pil_info
+qcom_common
+qcom_q6v5
+qcom_sysmon
+qcom_q6v5_pas
+qcom_pd_mapper
+qmi_helpers
+qrtr
+qrtr_smd
+qcom_glink_smem
+pdr_interface
+pmic_glink
+pmic_glink_altmode
+qcom_battmgr
+typec
+typec_ucsi
+ucsi_glink
+ps883x
+phy_qcom_qmp_combo
+phy_qcom_qmp_usb
+phy_qcom_eusb2_repeater
+phy_snps_eusb2
+phy_qcom_m31_eusb2
+phy_nxp_ptn3222
+onboard_usb_dev
+uas
+
+# LUKS root on NVMe.
+dm_mod
+dm_crypt
+nvme
+
+# Internal keyboard/touchpad for the passphrase prompt.
+gpi
+i2c_qcom_geni
+i2c_hid
+i2c_hid_of
+hid_asus
+hid_multitouch
+
+# Display: if msm is in the initramfs, the panel driver must be too, or the
+# passphrase prompt comes up on a dark panel.
+msm
+panel_samsung_atna33xc20
+drm_dp_aux_bus
+phy_qcom_edp
+dispcc_glymur

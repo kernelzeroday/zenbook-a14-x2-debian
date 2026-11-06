@@ -1,0 +1,7 @@
+#!/bin/sh
+# msm loads in the initramfs, so the Adreno X2 firmware has to be there too.
+set -e
+case "${1:-}" in prereqs) exit 0 ;; esac
+mkdir -p "$DESTDIR/lib/firmware/qcom"
+for f in /lib/firmware/qcom/gen80100_*; do [ -e "$f" ] && cp -pL "$f" "$DESTDIR/lib/firmware/qcom/"; done
+exit 0

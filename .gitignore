@@ -1,0 +1,15 @@
+# Never commit firmware, captures or images.
+*.mbn
+*.elf
+*.jsn
+*.bin
+*.b17
+*.cap
+*.img
+*.img.gz
+*.dtb
+*.tar
+*.deb
+*.nmconnection
+*.sgdisk
+__pycache__/
