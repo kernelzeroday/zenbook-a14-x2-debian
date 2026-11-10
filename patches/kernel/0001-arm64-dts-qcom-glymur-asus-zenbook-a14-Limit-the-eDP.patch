@@ -1,8 +1,8 @@
-From e970f2bba6e25cdfe75997d5318e58082e645981 Mon Sep 17 00:00:00 2001
+From afa58601b11821730dd4eb15c125c861733cfc39 Mon Sep 17 00:00:00 2001
 From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
 Date: Fri, 6 Nov 2026 01:38:19 +0000
-Subject: [PATCH 1/2] arm64: dts: qcom: glymur-asus-zenbook-a14: Limit the eDP
- link to HBR
+Subject: [PATCH 01/12] arm64: dts: qcom: glymur-asus-zenbook-a14: Limit the
+ eDP link to HBR
 
 The internal Samsung ATNA40CT06 panel trains successfully at HBR2 x2
 (dp_debug reports rate=540000, num_lanes=2) and the DRM state looks
@@ -18,10 +18,10 @@ Signed-off-by: kelsey <11334159+kernelzeroday@users.noreply.github.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts b/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
-index d773e30e0..1c0b16969 100644
+index e96e65a0c..dc17c4d26 100644
 --- a/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
 +++ b/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
-@@ -709,7 +709,8 @@ edp_panel_in: endpoint {
+@@ -689,7 +689,8 @@ edp_panel_in: endpoint {
  
  &mdss_dp3_out {
  	data-lanes = <0 1 2 3>;

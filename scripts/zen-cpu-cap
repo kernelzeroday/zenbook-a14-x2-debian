@@ -1,0 +1,13 @@
+#!/bin/sh
+# Cap all cpufreq policies to the highest available frequency <= 2.208 GHz, powersave governor.
+# Mitigation for firmware-level power-offs under load on the Zenbook A14 UX3407NA (see ~/bin/cpu).
+CAP=2208000
+i=0
+while [ ! -e /sys/devices/system/cpu/cpufreq/policy0/scaling_available_frequencies ] && [ $i -lt 30 ]; do sleep 1; i=$((i+1)); done
+for p in /sys/devices/system/cpu/cpufreq/policy*; do
+  echo powersave > "$p/scaling_governor"
+  best=0
+  for f in $(cat "$p/scaling_available_frequencies"); do [ "$f" -le $CAP ] && [ "$f" -gt $best ] && best=$f; done
+  [ $best -gt 0 ] && echo $best > "$p/scaling_max_freq"
+  echo "$(basename $p): $(cat $p/scaling_governor) max=$(cat $p/scaling_max_freq)"
+done

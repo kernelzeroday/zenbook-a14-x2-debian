@@ -1,0 +1,13 @@
+[Unit]
+Description=Cap CPU frequency (Zenbook A14 power-off mitigation)
+DefaultDependencies=no
+After=sysinit.target
+Before=basic.target display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/zen-cpu-cap
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target

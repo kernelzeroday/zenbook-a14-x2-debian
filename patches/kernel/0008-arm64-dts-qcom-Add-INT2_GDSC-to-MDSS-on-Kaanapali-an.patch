@@ -1,0 +1,55 @@
+From 66dc00940e0db7db440637648041bf1f5263be9e Mon Sep 17 00:00:00 2001
+From: Yongxing Mou <yongxing.mou@oss.qualcomm.com>
+Date: Mon, 20 Jul 2026 16:43:55 +0800
+Subject: [PATCH 08/12] arm64: dts: qcom: Add INT2_GDSC to MDSS on Kaanapali
+ and Glymur
+
+Kaanapali (SM8750) and Glymur use two display power domains.
+CORE_GDSC powers the main display hardware while INT2_GDSC powers
+a subset of SSPP blocks (VIG2/VIG3/DMA5/DMA6).
+
+Add DISP_CC_MDSS_CORE_INT2_GDSC alongside the existing CORE_GDSC
+reference in the MDSS node on both platforms and provide matching
+power-domain-names entries for the display power domains.
+
+Signed-off-by: Yongxing Mou <yongxing.mou@oss.qualcomm.com>
+Link: https://patch.msgid.link/20260720-msm_gdsc2-v1-3-4687866d6cb0@oss.qualcomm.com
+Signed-off-by: Abel Vesa <abel.vesa@oss.qualcomm.com>
+---
+ arch/arm64/boot/dts/qcom/glymur.dtsi    | 4 +++-
+ arch/arm64/boot/dts/qcom/kaanapali.dtsi | 4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/qcom/glymur.dtsi b/arch/arm64/boot/dts/qcom/glymur.dtsi
+index 65a398c0a..be888eed2 100644
+--- a/arch/arm64/boot/dts/qcom/glymur.dtsi
++++ b/arch/arm64/boot/dts/qcom/glymur.dtsi
+@@ -5400,7 +5400,9 @@ &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>,
+ 			interconnect-names = "mdp0-mem",
+ 					     "cpu-cfg";
+ 
+-			power-domains = <&dispcc DISP_CC_MDSS_CORE_GDSC>;
++			power-domains = <&dispcc DISP_CC_MDSS_CORE_GDSC>,
++					<&dispcc DISP_CC_MDSS_CORE_INT2_GDSC>;
++			power-domain-names = "core", "int2";
+ 
+ 			iommus = <&apps_smmu 0x1de0 0x2>;
+ 
+diff --git a/arch/arm64/boot/dts/qcom/kaanapali.dtsi b/arch/arm64/boot/dts/qcom/kaanapali.dtsi
+index e48a179d0..f08275b25 100644
+--- a/arch/arm64/boot/dts/qcom/kaanapali.dtsi
++++ b/arch/arm64/boot/dts/qcom/kaanapali.dtsi
+@@ -3636,7 +3636,9 @@ &mc_virt SLAVE_EBI1 QCOM_ICC_TAG_ALWAYS>,
+ 			interconnect-names = "mdp0-mem",
+ 					     "cpu-cfg";
+ 
+-			power-domains = <&dispcc DISP_CC_MDSS_CORE_GDSC>;
++			power-domains = <&dispcc DISP_CC_MDSS_CORE_GDSC>,
++					<&dispcc DISP_CC_MDSS_CORE_INT2_GDSC>;
++			power-domain-names = "core", "int2";
+ 
+ 			iommus = <&apps_smmu 0x800 0x2>;
+ 
+-- 
+2.47.3
+

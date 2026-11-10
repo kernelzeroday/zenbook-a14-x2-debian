@@ -1,0 +1,73 @@
+From 0d3232ac70b3e21fa978c1023d5c28d3d7af68c2 Mon Sep 17 00:00:00 2001
+From: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
+Date: Thu, 15 Oct 2026 10:55:32 +0200
+Subject: [PATCH 03/12] arm64: dts: qcom: glymur-zenbook-a14: Add Embedded
+ Controller
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The Glymur-based Zenbook A14 features an Embedded Controller running
+custom ASUS firmware (which is loosely based on the reference Qualcomm
+Hamoa EC one with a lot of modifications). It provides keyboard
+backlight control, additional temperature sensor readouts, fan speed
+monitoring and a number of miscellaneous functions.
+
+Describe it.
+
+Signed-off-by: Konrad Dybcio <konrad.dybcio@oss.qualcomm.com>
+Reviewed-by: Abel Vesa <abel.vesa@oss.qualcomm.com>
+Tested-by: Loïc Minier <loic.minier@oss.qualcomm.com>
+Link: https://patch.msgid.link/20261015-topic-asus_ec-v4-4-af6305ffcb10@oss.qualcomm.com
+Signed-off-by: Abel Vesa <abel.vesa@oss.qualcomm.com>
+---
+ .../qcom/glymur-asus-zenbook-a14-ux3407na.dts | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts b/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
+index dc17c4d26..8cedd3925 100644
+--- a/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
++++ b/arch/arm64/boot/dts/qcom/glymur-asus-zenbook-a14-ux3407na.dts
+@@ -588,6 +588,26 @@ touchscreen@15 {
+ 	};
+ };
+ 
++&i2c9 {
++	clock-frequency = <400000>;
++
++	status = "okay";
++
++	embedded-controller@76 {
++		compatible = "asus,zenbook-a14-ux3407na-ec";
++		reg = <0x76>;
++
++		interrupts-extended = <&tlmm 66 IRQ_TYPE_EDGE_FALLING>;
++
++		pinctrl-0 = <&ec_int_n_default>;
++		pinctrl-names = "default";
++
++		#thermal-sensor-cells = <1>;
++
++		wakeup-source;
++	};
++};
++
+ &i2c10 {
+ 	clock-frequency = <400000>;
+ 
+@@ -890,6 +910,12 @@ int-pins {
+ 		};
+ 	};
+ 
++	ec_int_n_default: ec-int-n-state {
++		pins = "gpio66";
++		function = "gpio";
++		bias-disable;
++	};
++
+ 	kybd_default: kybd-default-state {
+ 		pins = "gpio67";
+ 		function = "gpio";
+-- 
+2.47.3
+

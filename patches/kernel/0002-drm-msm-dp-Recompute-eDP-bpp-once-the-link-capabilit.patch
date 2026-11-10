@@ -1,8 +1,8 @@
-From 674fdeac1a09c0c9a0560d78cf07cc0f8c55e992 Mon Sep 17 00:00:00 2001
+From 0498816ede727c41ed501387c3b7da6099758e96 Mon Sep 17 00:00:00 2001
 From: kelsey <11334159+kernelzeroday@users.noreply.github.com>
 Date: Fri, 6 Nov 2026 01:44:22 +0000
-Subject: [PATCH 2/2] drm/msm/dp: Recompute eDP bpp once the link capabilities
- are known
+Subject: [PATCH 02/12] drm/msm/dp: Recompute eDP bpp once the link
+ capabilities are known
 
 msm_dp_display_set_mode() picks the output bpp with
 msm_dp_panel_get_supported_bpp(), which keeps the highest depth whose
@@ -26,10 +26,10 @@ Signed-off-by: kelsey <11334159+kernelzeroday@users.noreply.github.com>
  1 file changed, 13 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/gpu/drm/msm/dp/dp_display.c b/drivers/gpu/drm/msm/dp/dp_display.c
-index d48403f1d..b54318bbd 100644
+index c0c150e2c..f3801e361 100644
 --- a/drivers/gpu/drm/msm/dp/dp_display.c
 +++ b/drivers/gpu/drm/msm/dp/dp_display.c
-@@ -638,9 +638,21 @@ static int msm_dp_display_prepare_link(struct msm_dp_display_private *dp)
+@@ -637,9 +637,21 @@ static int msm_dp_display_prepare_link(struct msm_dp_display_private *dp)
  
  	drm_dbg_dp(dp->drm_dev, "sink_count=%d\n", dp->link->sink_count);
  

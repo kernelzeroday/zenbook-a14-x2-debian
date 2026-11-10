@@ -148,6 +148,53 @@ Building one module against a running kernel: `make KERNELRELEASE=<running relea
 `LOCALVERSION_AUTO` otherwise stamps the patched branch's hash into the vermagic, and the module
 won't load.
 
-## 8. Open
+## 8. Vanilla 7.4-rc2: three black screens (Nov 10)
+
+7.4-rc2 was tagged on Nov 8, but `linux-msm/laptops-kernel` was still on rc1. Looking at why we
+were on that fork at all: nobody chose it. qcom-deb-images builds its laptop flavour from
+`laptops-kernel --ref qcom-laptops`, the builder pinned that tip, and every later session
+inherited the pin. Vanilla v7.4-rc1 already had the UX3407NA DTS, `glymur.dtsi` and the EC
+driver. So the move was to vanilla rc2 plus this repo's patches. rc1→rc2 itself is quiet for this
+machine: no functional Qualcomm, msm, dm or SCMI changes, just the tree-wide `kmalloc_obj`
+conversion, plus an arm64 fix that saves `TPIDR2_EL0` across CPU suspend (SME is on all 18 cores).
+
+The first vanilla build, with patches 0001–0003, booted to a black panel. The caps lock LED
+worked, so the kernel was alive. It took three rounds, each one fixing a real problem:
+
+1. **MDSS INT2 power domain.** In the fork, Glymur's display subsystem has two power domains
+   (`core`, `int2`) and the driver powers both. Vanilla only knows `core`, so the SSPPs behind
+   INT2 (VIG2/3, DMA5/6) stay unpowered. Patches 0004 (driver) and 0008 (DT). The eDP fixes
+   0005–0007 came over with them.
+2. **CLX on the Adreno X2-85.** Vanilla 7.4 sends the CLX/IFF current-limit tables to the GMU. On
+   Glymur (CRD, Yoga Slim 7x, and this A14), the GMU then wedges on the next BW vote. msm binds
+   the GPU and display as one component device, so a GPU that never initializes kills the
+   display too. Patch 0009 is Abel Vesa's revert from the fork.
+3. **The eDP PHY.** With `drm.debug=0x106` and the LUKS passphrase typed blind, the boot finally
+   left a journal. The GPU was up, and eDP training failed in clock recovery at 2.7 Gbps × 2:
+   the sink asked for more swing on every try, lane status stayed `00`, and it ended in
+   `max v_level reached`. That rate and lane count work on rc1, so the fault was
+   physical-layer. Vanilla's `phy-qcom-edp.c` has no Glymur (v8) power-on, PLL, PCS and lane
+   sequence and drives the PHY with older-generation settings. Patches 0010–0012 (Bjorn
+   Andersson, plus Abel Vesa's fixup) bring it over. After that: `link training #1/#2 … successful`,
+   `bpp = 24`.
+
+How to find the next one faster than this: list `lsmod` on the kernel that works, map every
+module to its source directory, and diff those directories against the new tree with the
+allocator churn filtered out. That sweep turned up the PHY driver straight away. An earlier
+by-hand diff had used `drivers/phy/qcom` (which doesn't exist) and wrongly reported "no change".
+
+Still only in the fork, and not needed for the internal panel: the Glymur USB-C DP PHY fixes in
+`phy-qcom-qmp-combo.c`, the gcc-glymur USB/PCIe GDSC tweaks, audio (LPASS, SoundWire), Iris
+video, the camera, CoreSight, and the SPEL powercap driver.
+
+Vanilla's DTB enables `/sound`. `install-kernel-esp.sh` turns it off (gotcha 14).
+
+Shortly after the first good rc2 boot, the machine powered off instantly at firmware level,
+with no log. The CPU cap had been forgotten after the reboot (it isn't persistent). It's
+persistent now: [`config/systemd/zen-cpu-cap.service`](../config/systemd/zen-cpu-cap.service).
+
+## 9. Open
 
 - Bluetooth NVM/calibration files, speaker protection and topology, HDMI, suspend.
+- Port the qmp-combo USB-C DP fixes; test external displays.
+- Root-cause the firmware-level power-off under load, now that it's known to be load-driven.

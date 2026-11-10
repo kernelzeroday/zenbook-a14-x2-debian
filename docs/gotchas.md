@@ -38,3 +38,16 @@ Things that cost real time on this machine, roughly in the order you'll hit them
     high CPU transient spikes (boost up to 4.7 GHz across 18 cores) can cause instant reboots.
     Cap CPU frequency with `scripts/cpu mid` (~2.76 GHz) or `scripts/cpu low` (~2.2 GHz powersave)
     for stability during builds.
+19. **The CPU cap doesn't survive a reboot**, and forgetting it once was enough to get a
+    firmware-level power-off. Install `config/systemd/zen-cpu-cap.service`.
+20. "Vanilla supports this laptop" means the DTS is upstream, not the drivers it needs. Moving
+    off `laptops-kernel` needs patches 0004–0012: MDSS INT2 power domain, CLX revert, and the
+    Glymur v8 eDP PHY sequence. Each one alone gives a black panel with a live kernel.
+21. A black panel with an invisible LUKS prompt leaves **no journal**. Type the passphrase
+    blind and wait a minute, and boot the test entry with `drm.debug=0x106`. Then
+    `journalctl -b -1 -k` has the answer.
+22. To find what a new kernel is missing compared with one that works, diff the source
+    directories of every module in the working kernel's `lsmod`, with allocator churn filtered
+    out. Comparing DTBs node by node isn't enough: a node can be present with different properties.
+23. Try new kernels with `bootctl set-oneshot` (`scripts/install-kernel-esp.sh`). The default
+    entry stays the one that works, and a power cycle gets back to it.

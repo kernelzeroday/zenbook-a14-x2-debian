@@ -1,0 +1,39 @@
+From 05671ff771fd99573e4e21145b08b1fe9e90e440 Mon Sep 17 00:00:00 2001
+From: Saurabh Anand <saurabh.anand@oss.qualcomm.com>
+Date: Mon, 24 Aug 2026 16:58:05 +0530
+Subject: [PATCH 05/12] drm/msm/dp: clear force_link_train flag when link
+ training succeeds
+
+msm_dp_display_prepare_link() sets force_link_train = true before calling
+msm_dp_ctrl_on_link(). On success the flag was never cleared, so
+msm_dp_ctrl_prepare_stream_on() would unconditionally trigger a second
+link retrain even though the link was already trained.
+
+Clear force_link_train on the success path so that
+msm_dp_ctrl_prepare_stream_on() only retrains when the channel EQ check
+fails, as intended.
+
+Signed-off-by: Saurabh Anand <saurabh.anand@oss.qualcomm.com>
+Link: https://lore.kernel.org/r/20260824-qcom-dp-typec-reconnect-fixes-v1-2-2825e5bf8a96@oss.qualcomm.com
+Signed-off-by: Tyler Baker <forcedinductionz@gmail.com>
+Signed-off-by: Abel Vesa <abel.vesa@oss.qualcomm.com>
+---
+ drivers/gpu/drm/msm/dp/dp_display.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/drm/msm/dp/dp_display.c b/drivers/gpu/drm/msm/dp/dp_display.c
+index f3801e361..30d152146 100644
+--- a/drivers/gpu/drm/msm/dp/dp_display.c
++++ b/drivers/gpu/drm/msm/dp/dp_display.c
+@@ -673,6 +673,8 @@ static int msm_dp_display_prepare_link(struct msm_dp_display_private *dp)
+ 		return rc;
+ 	}
+ 
++	force_link_train = false;
++
+ 	return msm_dp_ctrl_prepare_stream_on(dp->ctrl, dp->panel, force_link_train);
+ }
+ 
+-- 
+2.47.3
+
