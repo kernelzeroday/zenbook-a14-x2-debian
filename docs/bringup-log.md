@@ -193,8 +193,39 @@ Shortly after the first good rc2 boot, the machine powered off instantly at firm
 with no log. The CPU cap had been forgotten after the reboot (it isn't persistent). It's
 persistent now: [`config/systemd/zen-cpu-cap.service`](../config/systemd/zen-cpu-cap.service).
 
-## 9. Open
+## 9. 7.4-rc3 and the early-boot power-off (Nov 22)
+
+rc3 (`aebb72744764`) changes nothing this machine needs: no Glymur, msm, eDP PHY or power fixes.
+All twelve patches apply unchanged, and none of them are upstream yet. It was built with rc2's
+`/proc/config.gz` as the base config, through `guarded-make.sh` at the 2.2 GHz cap (about 1 h 50 min,
+no thermal pauses at ~40 °C). It went onto the ESP as a separate entry (`asus-debian-rc3`) and
+was armed as a one-shot boot, with rc2 kept as the default.
+
+The one-shot boot died about 14.7 s after kernel start: the LUKS passphrase was accepted, the
+journal flushed to disk, and then the log stops. There was no oops or panic, and pstore was empty.
+The laptop came back up at the systemd-boot menu (the one-shot had been used up). Choosing rc3
+by hand then booted normally, and it has stayed up since.
+
+The timing matters. `zen-cpu-cap.service` is ordered `After=sysinit.target`, about 1 s after
+journald starts. The reset happened inside that gap, while udev coldplug loads modules on all 18
+cores at uncapped clocks. That's the same firmware-level power-off as before (§8), just in a
+window the service never covered. It doesn't look like an rc3 problem.
+
+The fix is to apply the cap from the initramfs. `cpufreq` (SCMI) is built in, so the policies
+exist before `/init` runs. [`config/initramfs/scripts/init-top/zen-cpu-cap-early`](../config/initramfs/scripts/init-top/zen-cpu-cap-early)
+sets `scaling_max_freq` to the highest step at or below 2.208 GHz on every policy, and logs
+`zen-cpu-cap-early:` lines to the kernel log. The powersave governor is a module, so the
+script only sets the frequency limit. The systemd service still runs afterwards and switches
+the governor. The installers put the script in place, and `update-initramfs -u` picks it up.
+
+That leaves kernel start to `/init` (about 12.5 s, mostly driver probing) running at the
+firmware's default clocks. If a reset ever shows up that early, the next step is a cap set by
+the kernel itself.
+
+## 10. Open
 
 - Bluetooth NVM/calibration files, speaker protection and topology, HDMI, suspend.
 - Port the qmp-combo USB-C DP fixes; test external displays.
-- Root-cause the firmware-level power-off under load, now that it's known to be load-driven.
+- Root-cause the firmware-level power-off under load, now that it's known to be load-driven
+  (it happens during boot-time module loading too, not only during builds).
+- Promote rc3 to default after a few days of use.

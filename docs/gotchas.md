@@ -51,3 +51,9 @@ Things that cost real time on this machine, roughly in the order you'll hit them
     out. Comparing DTBs node by node isn't enough: a node can be present with different properties.
 23. Try new kernels with `bootctl set-oneshot` (`scripts/install-kernel-esp.sh`). The default
     entry stays the one that works, and a power cycle gets back to it.
+24. **A systemd cap still leaves the early boot uncapped.** udev coldplug right after the LUKS
+    unlock was enough to trigger the power-off before `zen-cpu-cap.service` started. Cap from the
+    initramfs (`config/initramfs/scripts/init-top/zen-cpu-cap-early`) and check with
+    `dmesg | grep zen-cpu-cap-early`.
+25. A one-shot entry that "kicks you back to the boot menu" may not be a bad kernel. Check
+    `journalctl -b -1` for where it stopped before blaming the new build.

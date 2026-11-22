@@ -2,7 +2,7 @@
 
 Notes, patches and scripts from bringing up **Debian 13 (trixie) + GNOME with LUKS2 full-disk
 encryption** on the ASUS Zenbook A14 UX3407NA — the Snapdragon X2 Elite (Glymur, X2E88100,
-18-core) version. It now runs **vanilla Linux 7.4-rc2** plus the patch series in
+18-core) version. It now runs **vanilla Linux 7.4-rc2** (default) / **7.4-rc3** (on trial) plus the patch series in
 [`patches/kernel`](patches/kernel). The original bring-up used 7.4-rc1 from
 [`linux-msm/laptops-kernel`](https://github.com/linux-msm/laptops-kernel).
 
@@ -15,7 +15,7 @@ with root causes, so the next person doesn't have to rediscover them.
 > before wiping it. [docs/hardware-and-firmware.md](docs/hardware-and-firmware.md) lists the exact
 > files, the Windows driver packages they come from, and SHA256 hashes so you can verify yours.
 
-## Status (2026-11-10, BIOS UX3407NA.316, kernel 7.4.0-rc2 + patches 0001–0012)
+## Status (2026-11-22, BIOS UX3407NA.316, kernel 7.4.0-rc2/rc3 + patches 0001–0012)
 
 | Area | State | Notes |
 |---|---|---|
@@ -23,7 +23,7 @@ with root causes, so the next person doesn't have to rediscover them.
 | Internal NVMe, LUKS2 root, Plymouth prompt | ✅ | Kernel needed `CONFIG_DM_CRYPT` |
 | Internal OLED (eDP) | ✅ | Needs [HBR cap](patches/kernel/0001-arm64-dts-qcom-glymur-asus-zenbook-a14-Limit-the-eDP.patch); 24 bpp with [the bpp fix](patches/kernel/0002-drm-msm-dp-Recompute-eDP-bpp-once-the-link-capabilit.patch). On vanilla also needs 0004–0012 ([log §8](docs/bringup-log.md#8-vanilla-74-rc2-three-black-screens-nov-10)) |
 | GPU (Adreno X2-90) | ⚠️ | Mesa 26.1 (trixie-backports). No zap shader (EL2, see below). CLX must stay off ([0009](patches/kernel/0009-Revert-drm-msm-a8xx-Enable-CLX-feature-on-Adreno-X2-.patch)) |
-| Sustained load | ⚠️ | **Firmware-level instant power-off at full clocks.** Keep the CPU capped: [`zen-cpu-cap.service`](config/systemd/zen-cpu-cap.service) |
+| Sustained load | ⚠️ | **Firmware-level instant power-off at full clocks.** Keep the CPU capped from the initramfs on: [`zen-cpu-cap-early`](config/initramfs/scripts/init-top/zen-cpu-cap-early) + [`zen-cpu-cap.service`](config/systemd/zen-cpu-cap.service) |
 | Wi-Fi (QCC2072 / FastConnect C7700) | ✅ | Needs board data from the Windows driver ([script](scripts/wifi-offline-calibrate.sh)) |
 | Keyboard, touchpad | ✅ | I2C-HID |
 | Battery / charger status | ✅ | Needs ADSP running (qcom_q6v5_pas) |
@@ -49,6 +49,7 @@ with root causes, so the next person doesn't have to rediscover them.
 | …still black: GMU wedged, GPU never starts | Vanilla enables CLX on X2-85 | [Revert (0009)](patches/kernel/0009-Revert-drm-msm-a8xx-Enable-CLX-feature-on-Adreno-X2-.patch) |
 | …still black: eDP clock recovery never locks | Vanilla `phy-qcom-edp` has no Glymur v8 sequence | [0010–0012](patches/kernel/0011-phy-qcom-edp-update-v8-power-on-programming-sequence.patch) |
 | Instant power-off a minute after boot | CPU cap lost on reboot | [`zen-cpu-cap.service`](config/systemd/zen-cpu-cap.service) |
+| Power-off ~1 s after the LUKS unlock, back at the boot menu | The cap service runs after `sysinit.target`; the udev coldplug burst before it is uncapped | Cap in initramfs `init-top`: [`zen-cpu-cap-early`](config/initramfs/scripts/init-top/zen-cpu-cap-early) ([log §9](docs/bringup-log.md#9-74-rc3-and-the-early-boot-power-off-nov-22)) |
 
 The full narrative, including the dead ends, is in [docs/bringup-log.md](docs/bringup-log.md).
 Short version of the lessons: [docs/gotchas.md](docs/gotchas.md).
@@ -56,10 +57,11 @@ Short version of the lessons: [docs/gotchas.md](docs/gotchas.md).
 ## Repository layout
 
 ```
-patches/kernel/     git format-patch series against vanilla v7.4-rc2 (0001-0003 ours; 0004-0012 from
+patches/kernel/     git format-patch series against vanilla v7.4-rc2 (also applies unchanged to rc3;
+                    0001-0003 ours; 0004-0012 from
                     linux-msm/laptops-kernel, original authors kept)
 config/kernel/      kernel config fragment
-config/initramfs/   initramfs-tools module list and hooks
+config/initramfs/   initramfs-tools module list, hooks and the early CPU-cap script
 config/boot/        systemd-boot loader + entries (USB live and internal LUKS)
 config/systemd/     persistent CPU frequency cap
 scripts/            image build, DTB fixups, Wi-Fi calibration, USB writer, NVMe install

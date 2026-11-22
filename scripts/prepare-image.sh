@@ -45,6 +45,7 @@ mkdir -p "$root/usr/lib/firmware/updates/$board"
 cp -a "$firmware/$board/." "$root/usr/lib/firmware/updates/$board/"
 chown -R 0:0 "$root/usr/lib/firmware/updates/$board"
 install -m755 "$repo"/config/initramfs/hooks/* "$root/etc/initramfs-tools/hooks/"
+install -Dm755 "$repo"/config/initramfs/scripts/init-top/zen-cpu-cap-early "$root/etc/initramfs-tools/scripts/init-top/zen-cpu-cap-early"
 sed -i '/^# ux3407na begin$/,/^# ux3407na end$/d' "$root/etc/initramfs-tools/modules"
 { echo '# ux3407na begin'; grep -vE '^(#|$)' "$repo/config/initramfs/modules"; echo '# ux3407na end'; } >> "$root/etc/initramfs-tools/modules"
 

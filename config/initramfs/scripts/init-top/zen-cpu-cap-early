@@ -1,0 +1,15 @@
+#!/bin/sh
+# init-top: cap CPU max freq to <= 2.208 GHz as early as possible (scmi cpufreq is built in).
+# Closes the uncapped window between kernel start and zen-cpu-cap.service (brownout resets).
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in prereqs) prereqs; exit 0;; esac
+CAP=2208000
+for p in /sys/devices/system/cpu/cpufreq/policy*; do
+  [ -r "$p/scaling_available_frequencies" ] || continue
+  best=0
+  for f in $(cat "$p/scaling_available_frequencies"); do [ "$f" -le $CAP ] && [ "$f" -gt $best ] && best=$f; done
+  [ $best -gt 0 ] && echo $best > "$p/scaling_max_freq" 2>/dev/null
+  echo "zen-cpu-cap-early: $(basename $p) max=$(cat $p/scaling_max_freq)" > /dev/kmsg 2>/dev/null
+done
+exit 0

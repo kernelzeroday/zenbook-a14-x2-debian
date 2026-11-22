@@ -58,6 +58,7 @@ EOF
 mkdir -p "$target/etc/cryptsetup-initramfs"
 grep -qs '^CRYPTSETUP=y' "$target/etc/cryptsetup-initramfs/conf-hook" || echo 'CRYPTSETUP=y' >> "$target/etc/cryptsetup-initramfs/conf-hook"
 install -m755 "$repo"/config/initramfs/hooks/* "$target/etc/initramfs-tools/hooks/"
+install -Dm755 "$repo"/config/initramfs/scripts/init-top/zen-cpu-cap-early "$target/etc/initramfs-tools/scripts/init-top/zen-cpu-cap-early"
 sed -i '/^# ux3407na begin$/,/^# ux3407na end$/d' "$target/etc/initramfs-tools/modules"
 { echo '# ux3407na begin'; grep -vE '^(#|$)' "$repo/config/initramfs/modules"; echo '# ux3407na end'; } >> "$target/etc/initramfs-tools/modules"
 

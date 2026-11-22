@@ -2,6 +2,7 @@
 
 ## Kernel and device tree
 - Vanilla Linux v7.4-rc2 (`7475ea8b5861`), current base: https://github.com/torvalds/linux
+- Vanilla Linux v7.4-rc3 (`aebb72744764`), on trial; patches 0001–0012 apply unchanged
 - Fork commits carried as patches 0004–0012 (from laptops-kernel `qcom-laptops`, Nov 2026):
   `0e7e4ba2c363` drm/msm/mdss INT2_GDSC (Yongxing Mou), `e3730e0a7a7a` force_link_train (Saurabh Anand),
   `6753adf3054a` eDP 1.4 LINK_RATE_SET (Jesse Casco), `ba7a445631dc` eDP native lane count (Tyler Baker),
